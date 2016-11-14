@@ -254,12 +254,12 @@ for i in fits_files:
 #dayarray = glob.glob(sdir+'/raw/*jp2')
 #J. Prchlik 2016/10/06
 #Switched jp2 to fits
-#dayarray = glob.glob(sdir+'/raw/*fits')
-#forpool = np.arange(len(dayarray))
-#
-#pool1 = Pool(processes=nproc)
-#outs = pool1.map(format_img,forpool)
-#pool1.close()
+dayarray = glob.glob(sdir+'/raw/*fits')
+forpool = np.arange(len(dayarray))
+
+pool1 = Pool(processes=nproc)
+outs = pool1.map(format_img,forpool)
+pool1.close()
 
 #J. Prchlik 2016/10/06
    # create new symbolic links in order 

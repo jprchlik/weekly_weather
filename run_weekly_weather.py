@@ -167,7 +167,7 @@ if dday <= 0:
 else:
     uspan = 7-dday
 
-span = 7-uspan
+span = 7-np.abs(uspan)
 print 'Current Span is {0:1d} days'.format(span)
 #end day
 eday = now+dt(days=uspan)

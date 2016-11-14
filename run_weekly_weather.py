@@ -170,13 +170,14 @@ else:
 span = 7-np.abs(uspan)
 print 'Current Span is {0:1d} days'.format(span)
 #end day
-eday = now+dt(days=uspan)
+eday = now+dt(days=np.abs(uspan))
 
 #set to 12 utc on eday
 eday = eday.replace(hour=12,minute=0,second=0)
 
 #create a directory which will contain the raw png files
 sdir = stard+eday.date().strftime('%Y%m%d')
+print sdir
 try:
     os.mkdir(sdir)
     os.mkdir(sdir+'/raw')
@@ -253,12 +254,12 @@ for i in fits_files:
 #dayarray = glob.glob(sdir+'/raw/*jp2')
 #J. Prchlik 2016/10/06
 #Switched jp2 to fits
-dayarray = glob.glob(sdir+'/raw/*fits')
-forpool = np.arange(len(dayarray))
-
-pool1 = Pool(processes=nproc)
-outs = pool1.map(format_img,forpool)
-pool1.close()
+#dayarray = glob.glob(sdir+'/raw/*fits')
+#forpool = np.arange(len(dayarray))
+#
+#pool1 = Pool(processes=nproc)
+#outs = pool1.map(format_img,forpool)
+#pool1.close()
 
 #J. Prchlik 2016/10/06
    # create new symbolic links in order 

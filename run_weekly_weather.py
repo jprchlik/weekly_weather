@@ -177,7 +177,6 @@ eday = eday.replace(hour=12,minute=0,second=0)
 
 #create a directory which will contain the raw png files
 sdir = stard+eday.date().strftime('%Y%m%d')
-print sdir
 try:
     os.mkdir(sdir)
     os.mkdir(sdir+'/raw')

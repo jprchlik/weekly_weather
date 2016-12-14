@@ -119,6 +119,7 @@ def qual_check(filep):
 hv = HelioviewerClient()
 #datasources = hv.get_data_sources()
 
+#Only thing to edit if someone else takes over weekly weather
 stard = '/Volumes/Pegasus/jprchlik/weekly_weather/'
 
 now = datetime.utcnow()
@@ -163,14 +164,15 @@ samples = round(minweek/cadence)#number of dt samples to probe
 dday = now.weekday()-wday
 #find which day to end the weekly movie
 if dday <= 0:
-    uspan = dday
+    uspan = np.abs(dday)
 else:
     uspan = 7-dday
 
-span = 7-np.abs(uspan)
+span = 7-uspan
 print 'Current Span is {0:1d} days'.format(span)
+print 'End is {0:1d} days away'.format(uspan)
 #end day
-eday = now+dt(days=np.abs(uspan))
+eday = now+dt(days=uspan)
 
 #set to 12 utc on eday
 eday = eday.replace(hour=12,minute=0,second=0)
@@ -226,9 +228,11 @@ src = Scream(archive=archive,verbose=verbose,debug=debug)
 sendspan = "-{0:1.0f}d".format(span)
 paths = src.get_paths(date=nday.strftime("%Y-%m-%d"), time=nday.strftime("%H:%M:%S"),span=sendspan)
 fits_files = src.get_filelist(date=nday.strftime("%Y-%m-%d"),time=nday.strftime("%H:%M:%S"),span=sendspan,wavelnth='193')
-fits_times = src.get_filetimes(files=fits_files)
+qfls, qtms = src.run_quality_check(synoptic=True)
+fits_files = src.get_sample(files = qfls, sample = '6m', nfiles = 1)
+#fits_times = src.get_filetimes(files=fits_files)
 #set the file cadence with synoptic 3 minute images being the base
-fits_files = fits_files[::int(cadence)/3]
+#fits_files = fits_files[::int(cadence)/3]
 
 for i in fits_files:
     newfile = i.split('/')[-1]

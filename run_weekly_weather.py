@@ -15,6 +15,7 @@ from datetime import timedelta as dt
 from multiprocessing import Pool
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import grab_goes_xray_flux as ggxf
 
 from SMEARpy import Scream
 
@@ -163,21 +164,22 @@ samples = round(minweek/cadence)#number of dt samples to probe
 
 #if the day is the weekly weather do extra stuff
 #difference from Tuesday
-dday = now.weekday()-wday
-#find which day to end the weekly movie
-if dday <= 0:
-    uspan = np.abs(dday)
-else:
-    uspan = 7-dday
+dday = (now.weekday()-wday) %7
 
-span = 7-uspan
-print 'Current Span is {0:1d} days'.format(span)
-print 'End is {0:1d} days away'.format(uspan)
+#put extra padding to be safe but check the same day if the answer is zero then set the span to be 7 days
+if ((dday == 0) & (now.hour < 18)):  dday = 7
+
+#start day 
+sday = now-dt(days=dday)
+#set to 12 utc on sday
+sday = sday.replace(hour=12,minute=0,second=0)
+
 #end day
-eday = now+dt(days=uspan)
+eday = sday+dt(days=span)
 
-#set to 12 utc on eday
-eday = eday.replace(hour=12,minute=0,second=0)
+
+
+
 
 #create a directory which will contain the raw png files
 #sdir = stard+eday.date().strftime('%Y%m%d')
@@ -189,12 +191,16 @@ try:
     os.mkdir(sdir+'/working')
     os.mkdir(sdir+'/working/symlinks')
     os.mkdir(sdir+'/final')
+    os.mkdir(sdir+'/iris')
+    os.mkdir(sdir+'/xrt')
+    os.mkdir(sdir+'/goes')
 except OSError:
     print 'Directories Already Exist. Proceeding to Download'
 
+#get all days in date time span
+ggxf.look_xrays(sday,now,sdir)
 
 #create a starting time for the weekly movie, which is the previous Tuesday at 12:00:00 utc
-sday = eday+dt(days=-7)
 nday = sday
 
 #write ffmpeg command

@@ -16,6 +16,9 @@ from multiprocessing import Pool
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import grab_goes_xray_flux as ggxf
+from mpl_toolkits.axes_grid.inset_locator import inset_axes
+from astropy.io import ascii
+from astropy.table import hstack
 
 from SMEARpy import Scream
 
@@ -91,6 +94,9 @@ def format_img(i):
         ax.imshow(np.arcsinh(img.data),interpolation='none',cmap=cm.sdoaia193,origin='lower',vmin=np.arcsinh(70.),vmax=np.arcsinh(7500.),extent=[minx,maxx,miny,maxy])
 #        ax.set_axis_bgcolor('black')
         ax.text(-2000,-1100,'AIA 193 - '+img.date.strftime('%Y/%m/%d - %H:%M:%S')+'Z',color='white',fontsize=36,zorder=50,fontweight='bold')
+        if goes:
+            ingoes = inset_axes(ax,width="10%",height="5%",loc=3)
+            ax.plot()
 ##        ax.set_axis_bgcolor('black')
 #        ax.text(-1000,175,'AIA 193 - '+img.date.strftime('%Y/%m/%d - %H:%M:%S')+'Z',color='white',fontsize=36,zorder=50,fontweight='bold')
         fig.savefig(outfi,edgecolor='black',facecolor='black',dpi=dpi)
@@ -167,7 +173,7 @@ samples = round(minweek/cadence)#number of dt samples to probe
 dday = (now.weekday()-wday) %7
 
 #put extra padding to be safe but check the same day if the answer is zero then set the span to be 7 days
-if ((dday == 0) & (now.hour < 18)):  dday = 7
+if dday == 0:  dday = 7
 
 #start day 
 sday = now-dt(days=dday)
@@ -176,9 +182,6 @@ sday = sday.replace(hour=12,minute=0,second=0)
 
 #end day
 eday = sday+dt(days=span)
-
-
-
 
 
 #create a directory which will contain the raw png files
@@ -197,8 +200,13 @@ try:
 except OSError:
     print 'Directories Already Exist. Proceeding to Download'
 
+goes = False# overplot goes values
 #get all days in date time span
-ggxf.look_xrays(sday,now,sdir)
+if goes: 
+    ggxf.look_xrays(sday,now,sdir)
+    goesfil = glob.glob(sdir+'/goes/*txt')
+    ascii.read(goesfil[0],guess=True,comment='#',data_start=2,names=[ 'YR', 'MO', 'DA', 'HHMM', 'JDay', 'Secs', 'Short', 'Long'])
+
 
 #create a starting time for the weekly movie, which is the previous Tuesday at 12:00:00 utc
 nday = sday
@@ -212,16 +220,21 @@ com.close()
 
 
 
-i = 0
-dayarray = []
-while ((i < samples) & (nday < now-dt(hours=dh))):
-#while ((i < 1) & (nday < now-dt(hours=dh))):
-    nday = sday+dt(minutes=i*cadence) 
-#format the string for input
-    ind = nday.strftime('%Y/%m/%d %H:%M:%S')
-    dayarray.append(ind)
-    i += 1
-    
+#NOT USEFUL ANYMORE
+######i = 0
+######dayarray = []
+######while ((i < samples) & (nday < now-dt(hours=dh))):
+#######while ((i < 1) & (nday < now-dt(hours=dh))):
+######    nday = sday+dt(minutes=i*cadence) 
+#######format the string for input
+######    ind = nday.strftime('%Y/%m/%d %H:%M:%S')
+######    dayarray.append(ind)
+######    i += 1
+######    
+
+
+
+
 #pool = Pool(processes=nproc)
 #outs = pool.map(get_file,dayarray)
 #pool.close()
@@ -235,9 +248,9 @@ src = Scream(archive=archive,verbose=verbose,debug=debug)
 ##########################################################
 # Phase 1: get file names                                #
 ##########################################################
-sendspan = "-{0:1.0f}d".format(span)
-paths = src.get_paths(date=nday.strftime("%Y-%m-%d"), time=nday.strftime("%H:%M:%S"),span=sendspan)
-fits_files = src.get_filelist(date=nday.strftime("%Y-%m-%d"),time=nday.strftime("%H:%M:%S"),span=sendspan,wavelnth='193')
+sendspan = "-{0:1.0f}d".format(span) # need to spend current span not total span
+paths = src.get_paths(date=eday.strftime("%Y-%m-%d"), time=eday.strftime("%H:%M:%S"),span=sendspan)
+fits_files = src.get_filelist(date=eday.strftime("%Y-%m-%d"),time=eday.strftime("%H:%M:%S"),span=sendspan,wavelnth='193')
 qfls, qtms = src.run_quality_check(synoptic=True)
 fits_files = src.get_sample(files = qfls, sample = '6m', nfiles = 1)
 #fits_times = src.get_filetimes(files=fits_files)

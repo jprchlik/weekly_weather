@@ -120,7 +120,9 @@ hv = HelioviewerClient()
 #datasources = hv.get_data_sources()
 
 #Only thing to edit if someone else takes over weekly weather
-stard = '/Volumes/Pegasus/jprchlik/weekly_weather/'
+#running in subdirectory so this step is not need (Prchlik J. 2017/03/03)
+#stard = '/Volumes/Pegasus/jprchlik/weekly_weather/'
+
 
 now = datetime.utcnow()
 
@@ -178,7 +180,9 @@ eday = now+dt(days=uspan)
 eday = eday.replace(hour=12,minute=0,second=0)
 
 #create a directory which will contain the raw png files
-sdir = stard+eday.date().strftime('%Y%m%d')
+#sdir = stard+eday.date().strftime('%Y%m%d')
+#creating a subdirectory to extra step is not need
+sdir = eday.date().strftime('%Y%m%d')
 try:
     os.mkdir(sdir)
     os.mkdir(sdir+'/raw')

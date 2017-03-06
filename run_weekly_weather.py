@@ -287,15 +287,15 @@ pool1 = Pool(processes=nproc)
 outs = pool1.map(format_img,forpool)
 pool1.close()
 
+
+startd = '../'
 #J. Prchlik 2016/10/06
    # create new symbolic links in order 
-fipng = glob.glob(sdir+'/working/*png')
+fipng = glob.glob(startd+sdir+'/working/*png')
 for i,outfi in enumerate(fipng):
     symli = sdir+'/working/symlinks/seq{0:4d}.png'.format(i).replace(' ','0')
-    try:
-        os.symlink(outfi,symli)
-    except OSError:
-        continue
+    if os.path.islink(symli): os.unlink(symli) # replace existing symbolic link
+    os.symlink(outfi,symli)
 
 
 #change to current directory

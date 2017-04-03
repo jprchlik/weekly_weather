@@ -64,44 +64,48 @@ def img_extent(img):
 #for j,i in enumerate(dayarray):
 #reformat file to be in 1900x1200 array and contain timetext
 def format_img(i):
-    filep = dayarray[i]
-#output file
-#    outfi = sdir+'/working/seq{0:4d}.png'.format(i).replace(' ','0')
-    outfi = filep.replace('raw','working').replace('fits','png')
-    test = os.path.isfile(outfi)
-	
-#check image quality
 
-    check, img = qual_check(filep)
-
-#test to see if bmpfile exists
-    if ((test == False) & (check)):
-        print 'Modifying file '+filep
-        img = sunpy.map.Map(filep)
-        fig,ax = plt.subplots(figsize=(sc*float(w0)/float(dpi),sc*float(h0)/float(dpi)))
-        fig.set_dpi(dpi)
-        fig.subplots_adjust(left=0,bottom=0,right=1,top=1)
-        ax.set_axis_off()
-        #ax.imshow(img.data,interpolation='none',cmap=cm.sdoaia193,vmin=0,vmax=255,origin='lower')
-		# J. Prchlik 2016/10/06
-        #Modified for fits files 
-#        ax.imshow(np.arcsinh(img.data),interpolation='none',cmap=cm.sdoaia193,vmin=np.arcsinh(70.),vmax=np.arcsinh(7500.),origin='lower')
-#Block add J. Prchlik (2016/10/06) to give physical coordinate values 
-#return extent of image
-        maxx,minx,maxy,miny = img_extent(img)
-#plot the image in matplotlib
-#        ax.imshow(img.data,interpolation='none',cmap=cm.sdoaia193,vmin=0,vmax=255,origin='lower',extent=[minx,maxx,miny,maxy])
-        ax.imshow(np.arcsinh(img.data),interpolation='none',cmap=cm.sdoaia193,origin='lower',vmin=np.arcsinh(70.),vmax=np.arcsinh(7500.),extent=[minx,maxx,miny,maxy])
-#        ax.set_axis_bgcolor('black')
-        ax.text(-2000,-1100,'AIA 193 - '+img.date.strftime('%Y/%m/%d - %H:%M:%S')+'Z',color='white',fontsize=36,zorder=50,fontweight='bold')
-        if goes:
-            ingoes = inset_axes(ax,width="10%",height="5%",loc=3)
-            ax.plot()
-##        ax.set_axis_bgcolor('black')
-#        ax.text(-1000,175,'AIA 193 - '+img.date.strftime('%Y/%m/%d - %H:%M:%S')+'Z',color='white',fontsize=36,zorder=50,fontweight='bold')
-        fig.savefig(outfi,edgecolor='black',facecolor='black',dpi=dpi)
-        plt.clf()
-        plt.close()
+    try:
+        filep = dayarray[i]
+    #output file
+    #    outfi = sdir+'/working/seq{0:4d}.png'.format(i).replace(' ','0')
+        outfi = filep.replace('raw','working').replace('fits','png')
+        test = os.path.isfile(outfi)
+    	
+    #check image quality
+    
+        check, img = qual_check(filep)
+    
+    #test to see if bmpfile exists
+        if ((test == False) & (check)):
+            print 'Modifying file '+filep
+            img = sunpy.map.Map(filep)
+            fig,ax = plt.subplots(figsize=(sc*float(w0)/float(dpi),sc*float(h0)/float(dpi)))
+            fig.set_dpi(dpi)
+            fig.subplots_adjust(left=0,bottom=0,right=1,top=1)
+            ax.set_axis_off()
+            #ax.imshow(img.data,interpolation='none',cmap=cm.sdoaia193,vmin=0,vmax=255,origin='lower')
+    		# J. Prchlik 2016/10/06
+            #Modified for fits files 
+    #        ax.imshow(np.arcsinh(img.data),interpolation='none',cmap=cm.sdoaia193,vmin=np.arcsinh(70.),vmax=np.arcsinh(7500.),origin='lower')
+    #Block add J. Prchlik (2016/10/06) to give physical coordinate values 
+    #return extent of image
+            maxx,minx,maxy,miny = img_extent(img)
+    #plot the image in matplotlib
+    #        ax.imshow(img.data,interpolation='none',cmap=cm.sdoaia193,vmin=0,vmax=255,origin='lower',extent=[minx,maxx,miny,maxy])
+            ax.imshow(np.arcsinh(img.data),interpolation='none',cmap=cm.sdoaia193,origin='lower',vmin=np.arcsinh(70.),vmax=np.arcsinh(7500.),extent=[minx,maxx,miny,maxy])
+    #        ax.set_axis_bgcolor('black')
+            ax.text(-2000,-1100,'AIA 193 - '+img.date.strftime('%Y/%m/%d - %H:%M:%S')+'Z',color='white',fontsize=36,zorder=50,fontweight='bold')
+            if goes:
+                ingoes = inset_axes(ax,width="10%",height="5%",loc=3)
+                ax.plot()
+    ##        ax.set_axis_bgcolor('black')
+    #        ax.text(-1000,175,'AIA 193 - '+img.date.strftime('%Y/%m/%d - %H:%M:%S')+'Z',color='white',fontsize=36,zorder=50,fontweight='bold')
+            fig.savefig(outfi,edgecolor='black',facecolor='black',dpi=dpi)
+            plt.clf()
+            plt.close()
+    except:
+        print 'Unable to create {0}'.format(outfi)
     return
 
 
@@ -288,12 +292,12 @@ outs = pool1.map(format_img,forpool)
 pool1.close()
 
 
-startd = '../'
+startd = os.getcwd()+'/' #start from the base directory to create symbolic link
 #J. Prchlik 2016/10/06
    # create new symbolic links in order 
-fipng = glob.glob(startd+sdir+'/working/*png')
+fipng = glob.glob(startd+'working/*png')
 for i,outfi in enumerate(fipng):
-    symli = sdir+'/working/symlinks/seq{0:4d}.png'.format(i).replace(' ','0')
+    symli = startd+'/working/symlinks/seq{0:4d}.png'.format(i).replace(' ','0')
     if os.path.islink(symli): os.unlink(symli) # replace existing symbolic link
     os.symlink(outfi,symli)
 

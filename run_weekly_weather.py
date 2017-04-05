@@ -292,14 +292,15 @@ outs = pool1.map(format_img,forpool)
 pool1.close()
 
 
-startd = os.getcwd()+'/' #start from the base directory to create symbolic link
+startd = sdir+'/' #start from the base directory to create symbolic link
 #J. Prchlik 2016/10/06
    # create new symbolic links in order 
 fipng = glob.glob(startd+'working/*png')
+print fipng
 for i,outfi in enumerate(fipng):
     symli = startd+'/working/symlinks/seq{0:4d}.png'.format(i).replace(' ','0')
     if os.path.islink(symli): os.unlink(symli) # replace existing symbolic link
-    os.symlink(outfi,symli)
+    os.symlink('../'+outfi.split('/')[-1],symli)
 
 
 #change to current directory

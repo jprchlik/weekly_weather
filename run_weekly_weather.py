@@ -129,7 +129,6 @@ def format_img(i):
                 ingoes.set_yscale('log')
     ##        ax.set_axis_bgcolor('black')
     #        ax.text(-1000,175,'AIA 193 - '+img.date.strftime('%Y/%m/%d - %H:%M:%S')+'Z',color='white',fontsize=36,zorder=50,fontweight='bold')
-            print use
             fig.savefig(outfi,edgecolor='black',facecolor='black',dpi=dpi)
             plt.clf()
             plt.close()
@@ -337,7 +336,6 @@ startd = sdir+'/' #start from the base directory to create symbolic link
 #J. Prchlik 2016/10/06
    # create new symbolic links in order 
 fipng = glob.glob(startd+'working/*png')
-print fipng
 for i,outfi in enumerate(fipng):
     symli = startd+'/working/symlinks/seq{0:4d}.png'.format(i).replace(' ','0')
     if os.path.islink(symli): os.unlink(symli) # replace existing symbolic link

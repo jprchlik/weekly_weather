@@ -325,11 +325,11 @@ for i in fits_files:
 dayarray = glob.glob(sdir+'/raw/*fits')
 forpool = np.arange(len(dayarray))
 
-
-for i in forpool: format_img(i)
-####pool1 = Pool(processes=nproc)
-####outs = pool1.map(format_img,forpool)
-####pool1.close()
+#loop is for testing purposes
+#for i in forpool: format_img(i)
+pool1 = Pool(processes=nproc)
+outs = pool1.map(format_img,forpool)
+pool1.close()
 
 
 startd = sdir+'/' #start from the base directory to create symbolic link

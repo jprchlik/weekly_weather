@@ -1,8 +1,11 @@
 import matplotlib
+
 #fixes multiprocess issue
 matplotlib.use('agg')
 import sunpy.map
+from matplotlib.transforms import Bbox
 from sunpy.cm import cm
+import matplotlib.dates as mdates
 import subprocess
 from PIL import Image
 import glob
@@ -18,7 +21,7 @@ import matplotlib.image as mpimg
 import grab_goes_xray_flux as ggxf
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
 from astropy.io import ascii
-from astropy.table import hstack
+from astropy.table import vstack,Table
 
 from SMEARpy import Scream
 
@@ -64,8 +67,9 @@ def img_extent(img):
 #for j,i in enumerate(dayarray):
 #reformat file to be in 1900x1200 array and contain timetext
 def format_img(i):
+        global goes,goesdat,sday,eday
 
-    try:
+##    try:
         filep = dayarray[i]
     #output file
     #    outfi = sdir+'/working/seq{0:4d}.png'.format(i).replace(' ','0')
@@ -97,16 +101,41 @@ def format_img(i):
     #        ax.set_axis_bgcolor('black')
             ax.text(-2000,-1100,'AIA 193 - '+img.date.strftime('%Y/%m/%d - %H:%M:%S')+'Z',color='white',fontsize=36,zorder=50,fontweight='bold')
             if goes:
-                ingoes = inset_axes(ax,width="10%",height="5%",loc=3)
-                ax.plot()
+#format string for date on xaxis
+                myFmt = mdates.DateFormatter('%m/%d')
+
+#only use goes data upto observed time
+                use, = np.where(goesdat['time_dt'] < img.date)
+                ingoes = inset_axes(ax,width="27%",height="20%",loc=7,borderpad=-27) #hack so it is outside normal boarders
+                ingoes.set_position(Bbox([[0.525,0.51],[1.5,1.48]]))
+                ingoes.set_facecolor('black')
+#set inset plotting information to be white
+                ingoes.tick_params(axis='both',colors='white')
+                ingoes.spines['top'].set_color('white')
+                ingoes.spines['bottom'].set_color('white')
+                ingoes.spines['right'].set_color('white')
+                ingoes.spines['left'].set_color('white')
+#make grid
+                ingoes.grid(color='gray',ls='dashdot')
+
+                ingoes.xaxis.set_major_formatter(myFmt)
+
+                ingoes.set_ylim([1.E-9,1.E-2])
+                ingoes.set_xlim([sday,eday])
+                ingoes.set_ylabel('Watts m$^{-2}$',color='white')
+                ingoes.set_xlabel('Universal Time',color='white')
+                ingoes.plot(goesdat['time_dt'][use],goesdat['Long'][use],color='white')
+                ingoes.scatter(goesdat['time_dt'][use][-1],goesdat['Long'][use][-1],color='red',s=10,zorder=1000)
+                ingoes.set_yscale('log')
     ##        ax.set_axis_bgcolor('black')
     #        ax.text(-1000,175,'AIA 193 - '+img.date.strftime('%Y/%m/%d - %H:%M:%S')+'Z',color='white',fontsize=36,zorder=50,fontweight='bold')
+            print use
             fig.savefig(outfi,edgecolor='black',facecolor='black',dpi=dpi)
             plt.clf()
             plt.close()
-    except:
-        print 'Unable to create {0}'.format(outfi)
-    return
+##    except:
+##        print 'Unable to create {0}'.format(outfi)
+        return
 
 
 #for j,i in enumerate(dayarray):
@@ -205,11 +234,21 @@ except OSError:
     print 'Directories Already Exist. Proceeding to Download'
 
 goes = False# overplot goes values
+goes = True# overplot goes values
 #get all days in date time span
 if goes: 
     ggxf.look_xrays(sday,now,sdir)
     goesfil = glob.glob(sdir+'/goes/*txt')
-    ascii.read(goesfil[0],guess=True,comment='#',data_start=2,names=[ 'YR', 'MO', 'DA', 'HHMM', 'JDay', 'Secs', 'Short', 'Long'])
+    goesnames = [ 'YR', 'MO', 'DA', 'HHMM', 'JDay', 'Secs', 'Short', 'Long'] 
+    goesdat = Table(names=goesnames)
+
+#loop over all day information and add to large array
+    for m in goesfil:
+        temp = ascii.read(m,guess=True,comment='#',data_start=2,names=goesnames)
+        goesdat = vstack([goesdat,temp])
+
+#create datetime array
+goesdat['time_dt'] = [datetime(int(i['YR']),int(i['MO']),int(i['DA']))+dt(seconds=i['Secs']) for i in goesdat]
 
 
 #create a starting time for the weekly movie, which is the previous Tuesday at 12:00:00 utc
@@ -287,9 +326,11 @@ for i in fits_files:
 dayarray = glob.glob(sdir+'/raw/*fits')
 forpool = np.arange(len(dayarray))
 
-pool1 = Pool(processes=nproc)
-outs = pool1.map(format_img,forpool)
-pool1.close()
+
+for i in forpool: format_img(i)
+####pool1 = Pool(processes=nproc)
+####outs = pool1.map(format_img,forpool)
+####pool1.close()
 
 
 startd = sdir+'/' #start from the base directory to create symbolic link

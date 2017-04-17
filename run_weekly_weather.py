@@ -105,7 +105,9 @@ def format_img(i):
                 myFmt = mdates.DateFormatter('%m/%d')
 
 #only use goes data upto observed time
-                use, = np.where(goesdat['time_dt'] < img.date)
+
+                use, = np.where((goesdat['time_dt'] < img.date+dt(minutes=150)) & (goesdat['Long'] > 0.0))
+                clos,= np.where((goesdat['time_dt'] < img.date) & (goesdat['Long'] > 0.0))
                 ingoes = inset_axes(ax,width="27%",height="20%",loc=7,borderpad=-27) #hack so it is outside normal boarders
                 ingoes.set_position(Bbox([[0.525,0.51],[1.5,1.48]]))
                 ingoes.set_facecolor('black')
@@ -125,7 +127,7 @@ def format_img(i):
                 ingoes.set_ylabel('Watts m$^{-2}$',color='white')
                 ingoes.set_xlabel('Universal Time',color='white')
                 ingoes.plot(goesdat['time_dt'][use],goesdat['Long'][use],color='white')
-                ingoes.scatter(goesdat['time_dt'][use][-1],goesdat['Long'][use][-1],color='red',s=10,zorder=1000)
+                ingoes.scatter(goesdat['time_dt'][clos][-1],goesdat['Long'][clos][-1],color='red',s=10,zorder=1000)
                 ingoes.set_yscale('log')
     ##        ax.set_axis_bgcolor('black')
     #        ax.text(-1000,175,'AIA 193 - '+img.date.strftime('%Y/%m/%d - %H:%M:%S')+'Z',color='white',fontsize=36,zorder=50,fontweight='bold')
@@ -236,7 +238,7 @@ goes = False# overplot goes values
 goes = True# overplot goes values
 #get all days in date time span
 if goes: 
-    ggxf.look_xrays(sday,now,sdir)
+    ggxf.look_xrays(sday,now+dt(days=1),sdir)
     goesfil = glob.glob(sdir+'/goes/*txt')
     goesnames = [ 'YR', 'MO', 'DA', 'HHMM', 'JDay', 'Secs', 'Short', 'Long'] 
     goesdat = Table(names=goesnames)

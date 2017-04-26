@@ -68,6 +68,7 @@ def img_extent(img):
 #reformat file to be in 1900x1200 array and contain timetext
 def format_img(i):
         global goes,goesdat,sday,eday
+        global acepdat,acebdat,ace
 
 ##    try:
         filep = dayarray[i]
@@ -129,6 +130,12 @@ def format_img(i):
                 ingoes.plot(goesdat['time_dt'][use],goesdat['Long'][use],color='white')
                 ingoes.scatter(goesdat['time_dt'][clos][-1],goesdat['Long'][clos][-1],color='red',s=10,zorder=1000)
                 ingoes.set_yscale('log')
+#plot ace information
+            if ((ace) & (goes)):
+                use, = np.where((goesdat['time_dt'] < img.date+dt(minutes=150)) & (goesdat['Long'] > 0.0))
+                clos,= np.where((goesdat['time_dt'] < img.date) & (goesdat['Long'] > 0.0))
+                
+                
     ##        ax.set_axis_bgcolor('black')
     #        ax.text(-1000,175,'AIA 193 - '+img.date.strftime('%Y/%m/%d - %H:%M:%S')+'Z',color='white',fontsize=36,zorder=50,fontweight='bold')
             fig.savefig(outfi,edgecolor='black',facecolor='black',dpi=dpi)
@@ -252,6 +259,32 @@ if goes:
 #create datetime array
 goesdat['time_dt'] = [datetime(int(i['YR']),int(i['MO']),int(i['DA']))+dt(seconds=i['Secs']) for i in goesdat]
 
+ace = True #overplot ACE wind values
+if ace:
+    aceb = glob.glob(sdir+'/ace/*mag*txt')
+    acep = glob.glob(sdir+'/ace/*swe*txt')
+
+    aceb_names = [ 'YR', 'MO', 'DA', 'HHMM', 'JDay', 'Secs', 'S', 'Bx','By','Bz','Bt','Lat','Long'] 
+    acep_names = [ 'YR', 'MO', 'DA', 'HHMM', 'JDay', 'Secs', 'S', 'Den','Speed','Temp'] 
+  
+    acebdat = Table(names=aceb_names)
+    acepdat = Table(names=acep_names)
+
+#put B field in large array
+    for m in aceb:
+        temp = ascii.read(m,guess=True,comment='#',data_start=2,names=aceb_names)
+        acebdat = vstack([acebdat,temp])
+#put plasmag in large array
+    for m in acep:
+        temp = ascii.read(m,guess=True,comment='#',data_start=2,names=acep_names)
+        acepdat = vstack([acepdat,temp])
+
+#create datetime array
+acepdat['time_dt'] = [datetime(int(i['YR']),int(i['MO']),int(i['DA']))+dt(seconds=i['Secs']) for i in acepdat]
+#create datetime array
+acebdat['time_dt'] = [datetime(int(i['YR']),int(i['MO']),int(i['DA']))+dt(seconds=i['Secs']) for i in acebdat]
+
+aceadat = join([acepdat,acebdat],keys=['YR','MO','DA','HHMM'])
 
 #create a starting time for the weekly movie, which is the previous Tuesday at 12:00:00 utc
 nday = sday

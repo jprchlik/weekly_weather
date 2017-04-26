@@ -231,6 +231,7 @@ try:
     os.mkdir(sdir+'/iris')
     os.mkdir(sdir+'/xrt')
     os.mkdir(sdir+'/goes')
+    os.mkdir(sdir+'/ace')
 except OSError:
     print 'Directories Already Exist. Proceeding to Download'
 

@@ -21,7 +21,7 @@ import matplotlib.image as mpimg
 import grab_goes_xray_flux as ggxf
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
 from astropy.io import ascii
-from astropy.table import vstack,Table
+from astropy.table import vstack,Table,join
 
 from SMEARpy import Scream
 
@@ -68,7 +68,7 @@ def img_extent(img):
 #reformat file to be in 1900x1200 array and contain timetext
 def format_img(i):
         global goes,goesdat,sday,eday
-        global acepdat,acebdat,ace
+        global aceadat,ace
 
 ##    try:
         filep = dayarray[i]
@@ -125,16 +125,62 @@ def format_img(i):
 
                 ingoes.set_ylim([1.E-9,1.E-2])
                 ingoes.set_xlim([sday,eday])
-                ingoes.set_ylabel('Watts m$^{-2}$',color='white')
+                ingoes.set_ylabel('X-ray Flux (1-8$\mathrm{\AA}$) [Watts m$^{-2}$]',color='white')
                 ingoes.set_xlabel('Universal Time',color='white')
                 ingoes.plot(goesdat['time_dt'][use],goesdat['Long'][use],color='white')
                 ingoes.scatter(goesdat['time_dt'][clos][-1],goesdat['Long'][clos][-1],color='red',s=10,zorder=1000)
                 ingoes.set_yscale('log')
 #plot ace information
             if ((ace) & (goes)):
-                use, = np.where((goesdat['time_dt'] < img.date+dt(minutes=150)) & (goesdat['Long'] > 0.0))
-                clos,= np.where((goesdat['time_dt'] < img.date) & (goesdat['Long'] > 0.0))
+                use, = np.where((aceadat['time_dt'] < img.date+dt(minutes=150)) & (aceadat['S_1'] == 0.0) & (aceadat['S_2'] == 0) & (aceadat['Speed'] > -1000.))
+                clos,= np.where((aceadat['time_dt'] < img.date) & (aceadat['S_1'] ==  0) & (aceadat['S_2'] == 0) & (aceadat['Speed'] > -1000))
                 
+                acetop = inset_axes(ingoes,width='100%',height='100%',loc=9,borderpad=-27)
+                acebot = inset_axes(ingoes,width='100%',height='100%',loc=8,borderpad=-27)
+
+#set inset plotting information to be white
+                acetop.tick_params(axis='both',colors='white')
+                acetop.spines['top'].set_color('white')
+                acetop.spines['bottom'].set_color('white')
+                acetop.spines['right'].set_color('white')
+                acetop.spines['left'].set_color('white')
+
+#set inset plotting information to be white
+                acebot.tick_params(axis='both',colors='white')
+                acebot.spines['top'].set_color('white')
+                acebot.spines['bottom'].set_color('white')
+                acebot.spines['right'].set_color('white')
+                acebot.spines['left'].set_color('white')
+#make grid
+                acebot.grid(color='gray',ls='dashdot')
+                acetop.grid(color='gray',ls='dashdot')
+
+
+                acetop.set_facecolor('black')
+                acebot.set_facecolor('black')
+
+
+                acetop.set_ylim([0.,50.])
+                acebot.set_ylim([200.,1000.])
+
+                acetop.set_xlim([sday,eday])
+                acebot.set_xlim([sday,eday])
+
+                acetop.set_xlabel('Universal Time',color='white')
+                acebot.set_xlabel('Universal Time',color='white')
+ 
+                acetop.set_ylabel('B$_\mathrm{T}$ [nT]',color='white')
+                acebot.set_ylabel('Wind Speed [km/s]',color='white')
+
+                acetop.plot(aceadat['time_dt'][use],aceadat['Bt'][use],color='white')
+                acebot.plot(aceadat['time_dt'][use],aceadat['Speed'][use],color='white')
+                
+                acetop.scatter(aceadat['time_dt'][clos][-1],aceadat['Bt'][clos][-1],color='red',s=10,zorder=1000)
+                acebot.scatter(aceadat['time_dt'][clos][-1],aceadat['Speed'][clos][-1],color='red',s=10,zorder=1000)
+                
+                acebot.xaxis.set_major_formatter(myFmt)
+                acetop.xaxis.set_major_formatter(myFmt)
+
                 
     ##        ax.set_axis_bgcolor('black')
     #        ax.text(-1000,175,'AIA 193 - '+img.date.strftime('%Y/%m/%d - %H:%M:%S')+'Z',color='white',fontsize=36,zorder=50,fontweight='bold')
@@ -279,12 +325,10 @@ if ace:
         temp = ascii.read(m,guess=True,comment='#',data_start=2,names=acep_names)
         acepdat = vstack([acepdat,temp])
 
-#create datetime array
-acepdat['time_dt'] = [datetime(int(i['YR']),int(i['MO']),int(i['DA']))+dt(seconds=i['Secs']) for i in acepdat]
-#create datetime array
-acebdat['time_dt'] = [datetime(int(i['YR']),int(i['MO']),int(i['DA']))+dt(seconds=i['Secs']) for i in acebdat]
 
-aceadat = join([acepdat,acebdat],keys=['YR','MO','DA','HHMM'])
+aceadat = join(acepdat,acebdat,keys=['YR','MO','DA','HHMM'])
+#create datetime array
+aceadat['time_dt'] = [datetime(int(i['YR']),int(i['MO']),int(i['DA']))+dt(seconds=i['Secs_1']) for i in aceadat]
 
 #create a starting time for the weekly movie, which is the previous Tuesday at 12:00:00 utc
 nday = sday

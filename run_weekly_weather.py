@@ -127,8 +127,11 @@ def format_img(i):
                 ingoes.set_xlim([sday,eday])
                 ingoes.set_ylabel('X-ray Flux (1-8$\mathrm{\AA}$) [Watts m$^{-2}$]',color='white')
                 ingoes.set_xlabel('Universal Time',color='white')
-                ingoes.plot(goesdat['time_dt'][use],goesdat['Long'][use],color='white')
-                ingoes.scatter(goesdat['time_dt'][clos][-1],goesdat['Long'][clos][-1],color='red',s=10,zorder=1000)
+                try:
+                    ingoes.plot(goesdat['time_dt'][use],goesdat['Long'][use],color='white')
+                    ingoes.scatter(goesdat['time_dt'][clos][-1],goesdat['Long'][clos][-1],color='red',s=10,zorder=1000)
+                except:
+                    print 'No GOES data'
                 ingoes.set_yscale('log')
 #plot ace information
             if ((ace) & (goes)):
@@ -172,11 +175,15 @@ def format_img(i):
                 acetop.set_ylabel('B$_\mathrm{T}$ [nT]',color='white')
                 acebot.set_ylabel('Wind Speed [km/s]',color='white')
 
-                acetop.plot(aceadat['time_dt'][use],aceadat['Bt'][use],color='white')
-                acebot.plot(aceadat['time_dt'][use],aceadat['Speed'][use],color='white')
-                
-                acetop.scatter(aceadat['time_dt'][clos][-1],aceadat['Bt'][clos][-1],color='red',s=10,zorder=1000)
-                acebot.scatter(aceadat['time_dt'][clos][-1],aceadat['Speed'][clos][-1],color='red',s=10,zorder=1000)
+                #skip missing ace solar wind data
+                try:
+                    acetop.plot(aceadat['time_dt'][use],aceadat['Bt'][use],color='white')
+                    acebot.plot(aceadat['time_dt'][use],aceadat['Speed'][use],color='white')
+                    
+                    acetop.scatter(aceadat['time_dt'][clos][-1],aceadat['Bt'][clos][-1],color='red',s=10,zorder=1000)
+                    acebot.scatter(aceadat['time_dt'][clos][-1],aceadat['Speed'][clos][-1],color='red',s=10,zorder=1000)
+                except:
+                    print 'Missing ACE data'
                 
                 acebot.xaxis.set_major_formatter(myFmt)
                 acetop.xaxis.set_major_formatter(myFmt)
@@ -239,7 +246,7 @@ dpi = 300
 sc = dpi/100
 
 #number of processors for downloading
-nproc = 10
+nproc = 5
 
 
 #the arcsecond values for the image

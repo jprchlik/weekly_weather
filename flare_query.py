@@ -1,3 +1,7 @@
+__version__ = "0.1.0 (2017/09/29"
+__authors__ = ["Jakub Prchlik <jakub.prchlik@cfa.harvard.edu>"]
+__email__   = "jakub.prchlik@cfa.harvard.edu"
+
 from sunpy.net import hek
 import numpy as np
 import pandas as pd
@@ -12,10 +16,18 @@ def format_string(st):
 def flare_query(tstart,tend,odir=''):
      """
      A program that queries the number of flares in a given time frame, which writes the output into
-     a file formatted YYYYMM_HHMM based on tstart,
+     a file formatted YYYYMM_HHMM based on tstart into odir.
 
-
-
+     Parameters
+     ----------
+     tstart : string 
+         A datetime string in any format accepted by hek.attrs.Time which specifies 
+         when to start looking for flares in the HEK.
+     tend   : string 
+         A datetime string in any format accepted by hek.attrs.Time which specifies 
+         when to stop looking for flares in the HEK.
+     odir   : string
+         Output directory (default = Current directory)
 
     """
 
@@ -26,18 +38,16 @@ def flare_query(tstart,tend,odir=''):
     
     client = hek.HEKClient()
     
+    #flare event type
     event_type = 'FL'
     
-    
-    
     #query the HEK
-    result = client.search(hek.attrs.Time(tstart,tend),hek.attrs.EventType(event_type),((hek.attrs.AR.NOAANum == '12673') & (hek.attrs.OBS.Instrument == 'GOES')))
+    result = client.search(hek.attrs.Time(tstart,tend),hek.attrs.EventType(event_type),(hek.attrs.OBS.Instrument == 'GOES')))
     
     
     #turn dictionary into pandas Data frame
     for j,i in enumerate(result): 
         f_df.loc[j] = [i['ar_noaanum'],i['event_peaktime'],pd.to_datetime(i['event_peaktime']),i['fl_goescls']]
-        #print i['event_peaktime'],i['fl_goescls']
     
     #change index to input time
     f_df.set_index(f_df['time_dt'],inplace=True)

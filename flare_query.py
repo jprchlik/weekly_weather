@@ -14,27 +14,27 @@ def format_string(st):
 
 
 def flare_query(tstart,tend,odir=''):
-     """
-     A program that queries the number of flares in a given time frame, which writes the output into
-     a file formatted YYYYMM_HHMM based on tstart into odir.
+    """
+    A program that queries the number of flares in a given time frame, which writes the output into
+    a file formatted YYYYMM_HHMM based on tstart into odir.
 
-     Parameters
-     ----------
-     tstart : string 
-         A datetime string in any format accepted by hek.attrs.Time which specifies 
-         when to start looking for flares in the HEK.
-     tend   : string 
-         A datetime string in any format accepted by hek.attrs.Time which specifies 
-         when to stop looking for flares in the HEK.
-     odir   : string
-         Output directory (default = Current directory)
+    Parameters
+    ----------
+    tstart : string 
+        A datetime string in any format accepted by hek.attrs.Time which specifies 
+        when to start looking for flares in the HEK.
+    tend   : string 
+        A datetime string in any format accepted by hek.attrs.Time which specifies 
+        when to stop looking for flares in the HEK.
+    odir   : string
+        Output directory (default = Current directory)
 
     """
 
     
 
     #create base pandas Dataframe
-    f_df = pd.DataFrame(columns=['AR','time','time_dt','goes'])
+    f_df = pd.DataFrame(columns=['AR','time','time_dt','goes','score'])
     
     client = hek.HEKClient()
     
@@ -42,12 +42,14 @@ def flare_query(tstart,tend,odir=''):
     event_type = 'FL'
     
     #query the HEK
-    result = client.search(hek.attrs.Time(tstart,tend),hek.attrs.EventType(event_type),(hek.attrs.OBS.Instrument == 'GOES')))
+    result = client.search(hek.attrs.Time(tstart,tend),hek.attrs.EventType(event_type),(hek.attrs.OBS.Instrument == 'GOES'))
     
     
     #turn dictionary into pandas Data frame
     for j,i in enumerate(result): 
-        f_df.loc[j] = [i['ar_noaanum'],i['event_peaktime'],pd.to_datetime(i['event_peaktime']),i['fl_goescls']]
+       
+        f_df.loc[j] = [i['ar_noaanum'],i['event_peaktime'],pd.to_datetime(i['event_peaktime']),i['fl_goescls'],i['event_score']]
+        
     
     #change index to input time
     f_df.set_index(f_df['time_dt'],inplace=True)
@@ -67,6 +69,14 @@ def flare_query(tstart,tend,odir=''):
     
     #day resampling
     d_df = f_df.resample('1D').sum()
+
+
+    #get index for top percentile rank
+    top_ten = int(len(result)*.1)
+    if top_ten == 0: top_ten = 1
+
+    #best flares of the week according to HEK event score
+    b_df = f_df.sort_values('score',ascending=False)[0:top_ten]
     
     
     #noaa number resampling 
@@ -77,12 +87,16 @@ def flare_query(tstart,tend,odir=''):
     
     
     #write output to file
-    tout = format_string(tstart)
+    tout = format_string(tend)
     out_f = open('flares_'+tout+'.txt','w')
     
+    #write the output broken up by date
     out_f.write('#######DATE BREAKDOWN##############\n')
-    out_f.write(d_df[['X','M','C','B','T']].to_string()+'\n')
+    out_f.write(d_df[['X','M','C','B','T']].to_string()+'\n\n')
+    #write output broken up by AR
     out_f.write('#########AR BREAKDOWN##############\n')
-    out_f.write(n_df[['X','M','C','B','T']].to_string()+'\n')
-    #set datetime to be the index
+    out_f.write(n_df[['X','M','C','B','T']].to_string()+'\n\n')
+    #top ten percent of flare events
+    out_f.write('#########TOP TEN###################\n')
+    out_f.write(b_df[['AR','goes','score']].to_string()+'\n\n')
     out_f.close()

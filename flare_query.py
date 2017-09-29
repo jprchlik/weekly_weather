@@ -88,7 +88,7 @@ def flare_query(tstart,tend,odir=''):
     
     #write output to file
     tout = format_string(tend)
-    out_f = open('flares_'+tout+'.txt','w')
+    out_f = open(odir+'flares_'+tout+'.txt','w')
     
     #write the output broken up by date
     out_f.write('#######DATE BREAKDOWN##############\n')

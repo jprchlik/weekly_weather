@@ -22,6 +22,7 @@ import grab_goes_xray_flux as ggxf
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
 from astropy.io import ascii
 from astropy.table import vstack,Table,join
+import flare_query as fq
 
 from SMEARpy import Scream
 
@@ -367,6 +368,15 @@ com.close()
 #pool = Pool(processes=nproc)
 #outs = pool.map(get_file,dayarray)
 #pool.close()
+
+###Added output file recapping the last week of flares
+try:
+    qfmt = '%Y/%m/%d %H:%M:%S'
+    print sday,eday
+    fq.flare_query(sday.strftime(qfmt),eday.strftime(qfmt),odir=sdir+'/final/')
+except:
+    print 'FLARE SYNPOPSIS DID NOT RUN'
+
 
 #J. Prchlik 2016/10/06
 #Updated version calls local files

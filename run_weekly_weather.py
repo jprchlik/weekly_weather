@@ -315,8 +315,9 @@ goesdat['time_dt'] = [datetime(int(i['YR']),int(i['MO']),int(i['DA']))+dt(second
 
 ace = True #overplot ACE wind values
 if ace:
-    aceb = glob.glob(sdir+'/ace/*mag*txt')
-    acep = glob.glob(sdir+'/ace/*swe*txt')
+    #Updated to DSCOVR parameters using CSV 2018/01/09
+    aceb = glob.glob(sdir+'/ace/*mag*csv')
+    acep = glob.glob(sdir+'/ace/*swe*csv')
 
     aceb_names = [ 'YR', 'MO', 'DA', 'HHMM', 'JDay', 'Secs', 'S', 'Bx','By','Bz','Bt','Lat','Long'] 
     acep_names = [ 'YR', 'MO', 'DA', 'HHMM', 'JDay', 'Secs', 'S', 'Den','Speed','Temp'] 

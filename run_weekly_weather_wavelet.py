@@ -140,7 +140,8 @@ def format_img(i):
     #        ax.imshow(img.data,interpolation='none',cmap=cm.sdoaia193,vmin=0,vmax=255,origin='lower',extent=[minx,maxx,miny,maxy])
             #ax.imshow(np.arcsinh(f_img),interpolation='none',cmap=cm.sdoaia193,origin='lower',vmin=np.arcsinh(5.),vmax=np.arcsinh(7500.),extent=[minx,maxx,miny,maxy])
             #switch to 0.25 power
-            ax.imshow((f_img)**0.25,interpolation='none',cmap=cm.sdoaia193,origin='lower',vmin=(5.)**0.25,vmax=(3500.)**0.25,extent=[minx,maxx,miny,maxy])
+            #increase v_min to 33.
+            ax.imshow((f_img)**0.25,interpolation='none',cmap=cm.sdoaia193,origin='lower',vmin=(15.)**0.25,vmax=(3500.)**0.25,extent=[minx,maxx,miny,maxy])
     #        ax.set_axis_bgcolor('black')
             ax.text(-2000,-1100,'AIA 193 - '+img.date.strftime('%Y/%m/%d - %H:%M:%S')+'Z',color='white',fontsize=36,zorder=50,fontweight='bold')
             if goes:
@@ -324,7 +325,7 @@ eday = sday+dt(days=span)
 #sdir = stard+eday.date().strftime('%Y%m%d')
 #creating a subdirectory to extra step is not need
 #Added wavelet distinctions J. Prchlik 2018/01/17
-sdir = eday.date().strftime('%Y%m%d')+'/wavelet'
+sdir = eday.date().strftime('%Y%m%d')#+'/wavelet'
 try:
     os.mkdir(sdir)
     os.mkdir(sdir+'/raw')
@@ -338,8 +339,8 @@ try:
 except OSError:
     print 'Directories Already Exist. Proceeding to Download'
 
-goes = False# overplot goes values
-#goes = True# overplot goes values
+#goes = False# overplot goes values
+goes = True# overplot goes values
 #get all days in date time span
 if goes: 
     ggxf.look_xrays(sday,now+dt(days=1),sdir)
@@ -356,7 +357,7 @@ if goes:
     goesdat['time_dt'] = [datetime(int(i['YR']),int(i['MO']),int(i['DA']))+dt(seconds=i['Secs']) for i in goesdat]
 
 ace = True #overplot ACE wind values
-ace = False 
+#ace = False 
 if ace:
     #Updated to DSCOVR parameters using CSV 2018/01/09
     aceb = glob.glob(sdir+'/ace/*mag*csv')

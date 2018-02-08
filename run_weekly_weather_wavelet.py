@@ -249,14 +249,17 @@ def qual_check(filep):
 #Level0 quality flag equals 0 (0 means no issues)
     lev0 = img.meta['quallev0'] == 0
 #check level1 bitwise keywords (http://jsoc.stanford.edu/doc/keywords/AIA/AIA02840_K_AIA-SDO_FITS_Keyword_Document.pdf)
-    lev1 = np.binary_repr(img.meta['quality']) == '1000000000000000000000000000000'
+    lev1_a = (np.binary_repr(img.meta['quality']) == '1000000000000000000000000000000')
+    #keep some short exposures as long as they are not too short
+    lev1_b = ((img.exposure_time.value > 1.85) & (np.binary_repr(img.meta['quality']) == '1000000000000000000000000000100'))
 #check to see if it is a calibration image
 #This keyword changed after AIA failure
 #    calb = np.binary_repr(img.meta['aiftsid']) == '1010000000000000'
 #check that both levels pass and it is not a calibration file
-    check = ((lev0) & (lev1))# & (calb)) 
+    check = ((lev0) & (lev1_a | lev1_b))# & (calb)) 
 
     return check,img
+    #return lev0,img   
 
 
 
@@ -435,8 +438,8 @@ src = Scream(archive=archive,verbose=verbose,debug=debug)
 sendspan = "-{0:1.0f}d".format(span) # need to spend current span not total span
 paths = src.get_paths(date=eday.strftime("%Y-%m-%d"), time=eday.strftime("%H:%M:%S"),span=sendspan)
 fits_files = src.get_filelist(date=eday.strftime("%Y-%m-%d"),time=eday.strftime("%H:%M:%S"),span=sendspan,wavelnth='193')
-qfls, qtms = src.run_quality_check(synoptic=True)
-fits_files = src.get_sample(files = qfls, sample = '6m', nfiles = 1)
+#qfls, qtms = src.run_quality_check(synoptic=True)
+fits_files = src.get_sample(files = fits_files, sample = '6m', nfiles = 1)
 #fits_times = src.get_filetimes(files=fits_files)
 #set the file cadence with synoptic 3 minute images being the base
 #fits_files = fits_files[::int(cadence)/3]

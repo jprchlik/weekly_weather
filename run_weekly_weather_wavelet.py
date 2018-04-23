@@ -40,6 +40,10 @@ from scipy.signal import medfilt
 #from skimage.filters import rank #rank filters
 
 
+#Now need to manually download AIA syntoptic files for weekly weather
+#2018/04/23 J. Prchlik
+import get_synoptic_files as gsf
+
 
 
 def get_file(ind):
@@ -249,7 +253,7 @@ def qual_check(filep):
 #Level0 quality flag equals 0 (0 means no issues)
     lev0 = img.meta['quallev0'] == 0
 #check level1 bitwise keywords (http://jsoc.stanford.edu/doc/keywords/AIA/AIA02840_K_AIA-SDO_FITS_Keyword_Document.pdf)
-    lev1_a = (np.binary_repr(img.meta['quality']) == '1000000000000000000000000000000')
+    lev1_a = ((np.binary_repr(img.meta['quality']) == '1000000000000000000000000000000') & (img.exposure_time.value > 1.85))
     #keep some short exposures as long as they are not too short
     lev1_b = ((img.exposure_time.value > 1.85) & (np.binary_repr(img.meta['quality']) == '1000000000000000000000000000100'))
 #check to see if it is a calibration image
@@ -262,8 +266,14 @@ def qual_check(filep):
     #return lev0,img   
 
 
+##########################################################
+# Phase 1: Set parameters for movie creation             #
+##########################################################
 
-hv = HelioviewerClient()
+#move boolean plotting of ace and goes classifcation to the top
+goes = True# overplot goes values
+ace = True #overplot ACE wind values
+
 #datasources = hv.get_data_sources()
 
 #Only thing to edit if someone else takes over weekly weather
@@ -328,6 +338,9 @@ eday = sday+dt(days=span)
 #sdir = stard+eday.date().strftime('%Y%m%d')
 #creating a subdirectory to extra step is not need
 #Added wavelet distinctions J. Prchlik 2018/01/17
+##########################################################
+# Phase 2: Create local directories to for data download #
+##########################################################
 sdir = eday.date().strftime('%Y%m%d')#+'/wavelet'
 try:
     os.mkdir(sdir)
@@ -342,8 +355,9 @@ try:
 except OSError:
     print 'Directories Already Exist. Proceeding to Download'
 
-#goes = False# overplot goes values
-goes = True# overplot goes values
+##########################################################
+# Phase 3: Get GOES and Solar wind data from archives    #
+##########################################################
 #get all days in date time span
 if goes: 
     ggxf.look_xrays(sday,now+dt(days=1),sdir)
@@ -359,7 +373,6 @@ if goes:
     #create datetime array
     goesdat['time_dt'] = [datetime(int(i['YR']),int(i['MO']),int(i['DA']))+dt(seconds=i['Secs']) for i in goesdat]
 
-ace = True #overplot ACE wind values
 #ace = False 
 if ace:
     #Updated to DSCOVR parameters using CSV 2018/01/09
@@ -398,25 +411,6 @@ com.close()
 
 
 
-#NOT USEFUL ANYMORE
-######i = 0
-######dayarray = []
-######while ((i < samples) & (nday < now-dt(hours=dh))):
-#######while ((i < 1) & (nday < now-dt(hours=dh))):
-######    nday = sday+dt(minutes=i*cadence) 
-#######format the string for input
-######    ind = nday.strftime('%Y/%m/%d %H:%M:%S')
-######    dayarray.append(ind)
-######    i += 1
-######    
-
-
-
-
-#pool = Pool(processes=nproc)
-#outs = pool.map(get_file,dayarray)
-#pool.close()
-
 ###Added output file recapping the last week of flares
 try:
     qfmt = '%Y/%m/%d %H:%M:%S'
@@ -425,21 +419,26 @@ try:
 except:
     print 'FLARE SYNPOPSIS DID NOT RUN'
 
+#Added downloading of files
+##########################################################
+# Phase 4: get AIA file from server                      #
+##########################################################
+gsf.main(sday,eday,dt(minutes=cadence),sdir,d_wav=[193],nproc=nproc)
 
 #J. Prchlik 2016/10/06
 #Updated version calls local files
+##########################################################
+# Phase 5: get file names                                #
+##########################################################
 verbose=False
 debug = False
 archive = "/data/SDO/AIA/synoptic/"
 src = Scream(archive=archive,verbose=verbose,debug=debug)
-##########################################################
-# Phase 1: get file names                                #
-##########################################################
 sendspan = "-{0:1.0f}d".format(span) # need to spend current span not total span
 paths = src.get_paths(date=eday.strftime("%Y-%m-%d"), time=eday.strftime("%H:%M:%S"),span=sendspan)
 fits_files = src.get_filelist(date=eday.strftime("%Y-%m-%d"),time=eday.strftime("%H:%M:%S"),span=sendspan,wavelnth='193')
-#qfls, qtms = src.run_quality_check(synoptic=True)
-fits_files = src.get_sample(files = fits_files, sample = '6m', nfiles = 1)
+qfls, qtms = src.run_quality_check(synoptic=True)
+fits_files = src.get_sample(files = qfls, sample = '6m', nfiles = 1)
 #fits_times = src.get_filetimes(files=fits_files)
 #set the file cadence with synoptic 3 minute images being the base
 #fits_files = fits_files[::int(cadence)/3]
@@ -453,15 +452,9 @@ for i in fits_files:
 #        print 'Symlink Already Exists'
 
 
-
-
-
-
-
-
-
-
-
+##########################################################
+# Phase 6: Create png files                              #
+##########################################################
 #write new file and add text for time
 #dayarray = dayarray[0:1]
 #dayarray = glob.glob(sdir+'/raw/*jp2')
@@ -486,7 +479,10 @@ for i,outfi in enumerate(fipng):
     if os.path.islink(symli): os.unlink(symli) # replace existing symbolic link
     os.symlink('../'+outfi.split('/')[-1],symli)
 
-
+   
+##########################################################
+# Phase 7: Create movie                                  #
+##########################################################
 #change to current directory
 os.chdir(sdir)
 

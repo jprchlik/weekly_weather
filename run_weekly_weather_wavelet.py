@@ -23,6 +23,7 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes
 from astropy.io import ascii
 from astropy.table import vstack,Table,join
 import flare_query as fq
+import shutil
 
 from SMEARpy import Scream
 
@@ -294,7 +295,7 @@ rv = float(w0)/float(h0)
 
 
 #hour between aia update
-dh = 2
+dh = 0
 
 #set dpi
 dpi = 300
@@ -332,6 +333,13 @@ sday = sday.replace(hour=12,minute=0,second=0)
 
 #end day
 eday = sday+dt(days=span)
+
+
+#remove raw files from previous week if they exist
+#Do because I have to download files now 2018/04/23 J. Prchlik
+old_dir = '{0:%Y%m%d}/raw'.format(sday)
+if os.exists(old_dir): shutil.rmtree(old_dir)
+
 
 
 #create a directory which will contain the raw png files
@@ -423,7 +431,7 @@ except:
 ##########################################################
 # Phase 4: get AIA file from server                      #
 ##########################################################
-gsf.main(sday,eday,dt(minutes=cadence),sdir,d_wav=[193],nproc=nproc)
+gsf.download(sday,eday,dt(minutes=cadence),sdir+'/raw/',d_wav=[193],nproc=nproc)
 
 #J. Prchlik 2016/10/06
 #Updated version calls local files
@@ -432,7 +440,8 @@ gsf.main(sday,eday,dt(minutes=cadence),sdir,d_wav=[193],nproc=nproc)
 ##########################################################
 verbose=False
 debug = False
-archive = "/data/SDO/AIA/synoptic/"
+#archive = "/data/SDO/AIA/synoptic/"
+archive = sdir+'/raw/'
 src = Scream(archive=archive,verbose=verbose,debug=debug)
 sendspan = "-{0:1.0f}d".format(span) # need to spend current span not total span
 paths = src.get_paths(date=eday.strftime("%Y-%m-%d"), time=eday.strftime("%H:%M:%S"),span=sendspan)

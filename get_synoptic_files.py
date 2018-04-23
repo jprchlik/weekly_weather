@@ -12,7 +12,7 @@ from multiprocessing import Pool
 class download:
 
     def __init__(self,stime,etime,caden,b_dir,syn_arch='http://jsoc.stanford.edu/data/aia/synoptic/',d_wav=[193],
-                 w_fmt='{0:04d}.fits',nproc=8,f_dir='{0:%Y/%m/%d/H%H00/AIA%Y%m%d_%H%M_}'):
+                 w_fmt='{0:04d}.fits',nproc=8,f_dir='{0:%Y/%m/%d/H%H00/AIA%Y%m%d_%H%M%S_}'):
     
         """
     
@@ -93,10 +93,19 @@ class download:
        w_fil = w_fmt.format(wavl)
        #format input time
        s_dir = f_dir.format(time)
+
+       #local output directory
+       o_dir = self.b_dir+'/'.join(s_dir.split('/')[:-1])
+  
+       #check if direcory exists
+       if not os.path.exists(o_dir):
+           os.makedirs(o_dir)
+      
        #create output file
        o_fil = b_dir+s_dir.split('/')[-1]+w_fil
+       o_fil = b_dir+s_dir+w_fil
        #file to download from archive
-       d_fil = syn_arch+s_dir+w_fil
+       d_fil = self.syn_arch+s_dir+w_fil
     
        #check if output file exists
        if os.path.isfile(o_fil) == False:

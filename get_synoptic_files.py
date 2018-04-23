@@ -8,10 +8,11 @@ from multiprocessing import Pool
 
 
 
+
 class download:
 
-    def __init__(stime,etime,caden,b_dir,syn_arch= 'http://jsoc.stanford.edu/data/aia/synoptic/',d_wav=[193],
-             w_fmt='{0:04d}.fits',nproc=8)
+    def __init__(self,stime,etime,caden,b_dir,syn_arch='http://jsoc.stanford.edu/data/aia/synoptic/',d_wav=[193],
+                 w_fmt='{0:04d}.fits',nproc=8):
     
         """
     
@@ -40,9 +41,16 @@ class download:
         
         f_dir : string, optional
             Create local directory path format for SDO/AIA files (default = '{0:%Y/%m/%d/H%H00/AIA%Y%m%d_%H%M_}')
-    
         """
     
+        self.stime = stime
+        self.etime = etime
+        self.caden = caden
+        self.b_dir = b_dir
+        self.syn_arch = syn_arch
+        self.d_wav = d_wav
+        self.w_fmt = w_fmt
+        self.nproc = nproc
     
         
         #desired cadence for the observations
@@ -51,11 +59,14 @@ class download:
         #create a list of combination of dates and wavelengths
         inpt_itr = list(itertools.product(real_cad,d_wav))
         
-        #Download the files locally
-        pool = Pool(processes=8)
-        outp = pool.map(wrap_download_file,inpt_itr)
-        pool.close()
-        pool.join()
+        #Download the files locally in parallel if nproc greater than 1
+        if self.proc < 2:
+            for i in intp_itr: self.wrap_download_file(i)
+        else:
+            pool = Pool(processes=self.nproc)
+            outp = pool.map(self.wrap_download_file,inpt_itr)
+            pool.close()
+            pool.join()
 
     #retrieve desired cadence from file list
     def des_cad(start,end,delta):
@@ -67,7 +78,7 @@ class download:
     
     #wrapper for download file for par. processing
     def wrap_download_file(args):
-        return download_file(*args)
+        return self.download_file(*args)
     
     #download files from archive for each wavelength
     def download_file(time,wavl):

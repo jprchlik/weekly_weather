@@ -12,7 +12,7 @@ from multiprocessing import Pool
 class download:
 
     def __init__(self,stime,etime,caden,b_dir,syn_arch='http://jsoc.stanford.edu/data/aia/synoptic/',d_wav=[193],
-                 w_fmt='{0:04d}.fits',nproc=8):
+                 w_fmt='{0:04d}.fits',nproc=8,f_dir='{0:%Y/%m/%d/H%H00/AIA%Y%m%d_%H%M_}'):
     
         """
     
@@ -51,6 +51,7 @@ class download:
         self.d_wav = d_wav
         self.w_fmt = w_fmt
         self.nproc = nproc
+        self.f_dir = f_dir
     
         
         #desired cadence for the observations
@@ -61,7 +62,7 @@ class download:
         
         #Download the files locally in parallel if nproc greater than 1
         if self.nproc < 2:
-            for i in intp_itr: self.wrap_download_file(i)
+            for i in inpt_itr: self.wrap_download_file(i)
         else:
             pool = Pool(processes=self.nproc)
             outp = pool.map(self.wrap_download_file,inpt_itr)
@@ -77,7 +78,7 @@ class download:
             curr += delta
     
     #wrapper for download file for par. processing
-    def wrap_download_file(args):
+    def wrap_download_file(self,args):
         return self.download_file(*args)
     
     #download files from archive for each wavelength

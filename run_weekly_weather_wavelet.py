@@ -338,7 +338,7 @@ eday = sday+dt(days=span)
 #remove raw files from previous week if they exist
 #Do because I have to download files now 2018/04/23 J. Prchlik
 old_dir = '{0:%Y%m%d}/raw'.format(sday)
-if os.exists(old_dir): shutil.rmtree(old_dir)
+if os.path.exists(old_dir): shutil.rmtree(old_dir)
 
 
 
@@ -441,7 +441,7 @@ gsf.download(sday,eday,dt(minutes=cadence),sdir+'/raw/',d_wav=[193],nproc=nproc)
 verbose=False
 debug = False
 #archive = "/data/SDO/AIA/synoptic/"
-archive = sdir+'/raw/'
+archive = os.getcwd()+'/'+sdir+'/raw/'
 src = Scream(archive=archive,verbose=verbose,debug=debug)
 sendspan = "-{0:1.0f}d".format(span) # need to spend current span not total span
 paths = src.get_paths(date=eday.strftime("%Y-%m-%d"), time=eday.strftime("%H:%M:%S"),span=sendspan)
@@ -452,6 +452,7 @@ fits_files = src.get_sample(files = qfls, sample = '6m', nfiles = 1)
 #set the file cadence with synoptic 3 minute images being the base
 #fits_files = fits_files[::int(cadence)/3]
 
+#create symbolic links for AIA syntopic files in raw directory
 for i in fits_files:
     newfile = i.split('/')[-1]
     try:
@@ -477,6 +478,7 @@ forpool = np.arange(len(dayarray))
 pool1 = Pool(processes=nproc)
 outs = pool1.map(format_img,forpool)
 pool1.close()
+pool1.join()
 
 
 startd = sdir+'/' #start from the base directory to create symbolic link

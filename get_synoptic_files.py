@@ -54,13 +54,13 @@ class download:
     
         
         #desired cadence for the observations
-        real_cad = [result for result in des_cad(stime,etime,caden)]
+        real_cad = [result for result in self.des_cad(stime,etime,caden)]
         
         #create a list of combination of dates and wavelengths
         inpt_itr = list(itertools.product(real_cad,d_wav))
         
         #Download the files locally in parallel if nproc greater than 1
-        if self.proc < 2:
+        if self.nproc < 2:
             for i in intp_itr: self.wrap_download_file(i)
         else:
             pool = Pool(processes=self.nproc)
@@ -69,7 +69,7 @@ class download:
             pool.join()
 
     #retrieve desired cadence from file list
-    def des_cad(start,end,delta):
+    def des_cad(self,start,end,delta):
         """Create an array from start to end with desired cadence"""
         curr = start
         while curr < end:
@@ -81,7 +81,7 @@ class download:
         return self.download_file(*args)
     
     #download files from archive for each wavelength
-    def download_file(time,wavl):
+    def download_file(self,time,wavl):
   
        #Init variables
        w_fmt = self.w_fmt

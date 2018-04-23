@@ -107,12 +107,19 @@ def download_file(time,wavl,w_fmt,f_dir,b_dir,syn_arch):
    #file to download from archive
    d_fil = syn_arch+s_dir+w_fil
 
+   #remove file if program downloaded empty file 2018/04/23 J. Prchlik
+   if os.path.isfile(o_fil):
+       if os.path.getsize(o_fil) < 400 : os.remove(o_fil)
+
    #check if output file exists
-   if os.path.isfile(o_fil) == False:
+   if not os.path.isfile(o_fil):
+
        #try to download file if fails continue on
        try:
            urllib.urlretrieve(d_fil,o_fil) 
        except:
            print("Cound not Download {0} from archive".format(d_fil))
        
+       #file if program downloaded empty file 2018/04/23 J. Prchlik
+       if os.path.getsize(o_fil) < 400 : os.remove(o_fil)
 

@@ -295,7 +295,7 @@ rv = float(w0)/float(h0)
 
 
 #hour between aia update
-dh = 0
+dh = 2
 
 #set dpi
 dpi = 300

@@ -105,7 +105,7 @@ def format_img(i):
     
     #test to see if bmpfile exists
         if ((test == False) & (check)):
-            print 'Modifying file '+filep
+            print('Modifying file '+filep)
             img = sunpy.map.Map(filep)
             fig,ax = plt.subplots(figsize=(sc*float(w0)/float(dpi),sc*float(h0)/float(dpi)))
             fig.set_dpi(dpi)
@@ -134,7 +134,9 @@ def format_img(i):
             n_lev = 6
             o_wav = pywt.swt2(img_sub, wavelet, level=n_lev )
             #only use the first 4
-            f_img = pywt.iswt2(o_wav[0:4],wavelet)
+            #f_img = pywt.iswt2(o_wav[0:4],wavelet)
+            #use last four because PyWavelet switched the ordering
+            f_img = pywt.iswt2(o_wav[-4:],wavelet)
             #Add  wavelet back into image
             f_img = f_img+wav_img
 
@@ -179,7 +181,7 @@ def format_img(i):
                     ingoes.plot(goesdat['time_dt'][use],goesdat['Long'][use],color='white')
                     ingoes.scatter(goesdat['time_dt'][clos][-1],goesdat['Long'][clos][-1],color='red',s=10,zorder=1000)
                 except:
-                    print 'No GOES data'
+                    print('No GOES data')
                 ingoes.set_yscale('log')
 #plot ace information
             if ((ace) & (goes)):
@@ -231,7 +233,7 @@ def format_img(i):
                     acetop.scatter(aceadat['time_dt'][clos][-1],aceadat['Bt'][clos][-1],color='red',s=10,zorder=1000)
                     acebot.scatter(aceadat['time_dt'][clos][-1],aceadat['Speed'][clos][-1],color='red',s=10,zorder=1000)
                 except:
-                    print 'Missing ACE data'
+                    print('Missing ACE data')
                 
                 acebot.xaxis.set_major_formatter(myFmt)
                 acetop.xaxis.set_major_formatter(myFmt)
@@ -337,8 +339,8 @@ eday = sday+dt(days=span)
 
 #remove raw files from previous week if they exist
 #Do because I have to download files now 2018/04/23 J. Prchlik
-old_dir = '{0:%Y%m%d}/raw'.format(sday)
-if os.path.exists(old_dir): shutil.rmtree(old_dir)
+#old_dir = '{0:%Y%m%d}/raw'.format(sday)
+#if os.path.exists(old_dir): shutil.rmtree(old_dir)
 
 
 
@@ -361,7 +363,7 @@ try:
     os.mkdir(sdir+'/goes')
     os.mkdir(sdir+'/ace')
 except OSError:
-    print 'Directories Already Exist. Proceeding to Download'
+    print('Directories Already Exist. Proceeding to Download')
 
 ##########################################################
 # Phase 3: Get GOES and Solar wind data from archives    #
@@ -422,10 +424,10 @@ com.close()
 ###Added output file recapping the last week of flares
 try:
     qfmt = '%Y/%m/%d %H:%M:%S'
-    print sday,eday
+    print(sday,eday)
     fq.flare_query(sday.strftime(qfmt),eday.strftime(qfmt),odir=sdir+'/final/')
 except:
-    print 'FLARE SYNPOPSIS DID NOT RUN'
+    print('FLARE SYNPOPSIS DID NOT RUN')
 
 #Added downloading of files
 ##########################################################

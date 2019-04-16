@@ -7,7 +7,19 @@ import numpy as np
 import pandas as pd
 
 def format_string(st):
+    """
+    formats endtime string into a format of YYYYMMDD_HHMMSS
 
+    Parameters
+    ----------
+    st: string
+        A datetime string in the format YYYY/MM/DD HH:MM
+
+    Returns
+    -------
+    out: string
+        A string in the form of YYYYMMDD_HHMM
+    """
     out = st.replace('/','').replace(':','').replace(' ','_')
     return out
 

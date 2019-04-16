@@ -1,4 +1,5 @@
-#weekly_weather_wavelet.py
+Weekly Solar Weather
+=========================
 
 Summary
 -------
@@ -17,8 +18,7 @@ A Word Document containing information on how to run the Video Wall. A printed c
 
 flare_query.py
 ==============
-A program that queries the number of flares in a given time frame and writes the output into
-    a file formatted file.
+A program that queries the number of flares in a given time frame and writes the output into formatted file.
 
 get_syntoptic_files.py
 ==============

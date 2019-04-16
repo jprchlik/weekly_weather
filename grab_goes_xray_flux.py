@@ -9,34 +9,83 @@ from datetime import timedelta,datetime
 
 #Funtion to retrieve events from given day on noao ftp server
 def getfiles(day,ftp,sdir):
+    """
+    Retrieves GOES irradence data from NOAA archive
+
+    Parameters
+    ----------
+    day: datetime object
+        Day you are interested in downloading from NOAA archive.
+    ftp: ftp libobject
+        An ftp lib object that is connected to the NOAA archive.
+    sdir: string
+        The base directory location for the download.
+
+    Returns
+    -------
+    None
+    """
     files = '{0:%Y%m%d}_Gs_xr_1m.txt'.format(day)
-    print files
 #create file to write ftp data
     fhandle = open(sdir+'/goes/'+files,'wb')
     try:
         ftp.retrbinary('RETR {0}'.format(files),fhandle.write)
     except:
-        print '{0} not in archive'.format(files)
+        print('{0} not in archive'.format(files))
 
     fhandle.close()
 
 #Funtion to retrieve events from given day on noao ftp server
 def getfiles_ace(day,ftp,sdir,swepam=False,mag=False):
-    if swepam: files = '{0:%Y%m%d}_ace_swepam_1m.txt'.format(day)
-    if mag: files = '{0:%Y%m%d}_ace_mag_1m.txt'.format(day)
+    """
+    Retrieves in-situ solar wind data for ACE
+
+    Parameters
+    ----------
+    day: datetime object
+        Day you are interested in downloading from NOAA archive.
+    ftp: ftp libobject
+        An ftp lib object that is connected to the NOAA archive.
+    sdir: string
+        The base directory location for the download.
+    swepam: boolean, optional
+        Download plasma data from ACE (Default = False)
+    mag: boolean, optional
+        Download magnetic field data from ACE (Default = False)
+
+    Returns
+    -------
+    None
+    """
+    if swepam:
+        files = '{0:%Y%m%d}_ace_swepam_1m.txt'.format(day)
+    if mag:
+        files = '{0:%Y%m%d}_ace_mag_1m.txt'.format(day)
 #create file to write ftp data
     fhandle = open(sdir+'/ace/'+files,'wb')
     try:
         ftp.retrbinary('RETR {0}'.format(files),fhandle.write)
     except:
-        print '{0} not in archive'.format(files)
+        print('{0} not in archive'.format(files))
 
     fhandle.close()
 
 #Function to retrieve DSCOVR events from swpc json server
-def getfiles_dscvor(sdir,swepar=False,mag=False,
-    path='http://services.swpc.noaa.gov/products/solar-wind/'):
+def getfiles_dscvor(sdir,path='http://services.swpc.noaa.gov/products/solar-wind/'):
+    """
+    Retrieves in-situ solar wind data for DSCOVR
 
+    Parameters
+    ----------
+    sdir: string
+        The base directory location for the download.
+    path: string
+        The http directory containing the nrt DSCOVR solar wind products 
+
+    Returns
+    -------
+    None
+    """
 
     import pandas as pd
     #Read json objects from swpc
@@ -87,6 +136,22 @@ def getfiles_dscvor(sdir,swepar=False,mag=False,
     mpar.to_csv(outmag,index=False)
 
 def look_xrays(start,end,sdir):
+    """
+    Starting function that loops over days and downloads the requested data.
+
+    Parameters
+    ----------
+    start: datetime object
+        The date to start downloading solar information
+    end: datetiem object
+        The date to end download solar information
+    sdir: string
+        The base directory location for the download.
+
+    Returns
+    -------
+    None
+    """
 #initialize variables
     ftp = ftplib.FTP('ftp.swpc.noaa.gov','anonymous','jakub.prchlik@cfa.harvard.edu')
 #change ftp directory to events directory for a given year

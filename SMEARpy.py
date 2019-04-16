@@ -11,14 +11,14 @@ try:
 	import numpy
 except ImportError:
 	import sys
-	print >> sys.stderr, "numpy not installed, use \"pip install numpy --upgrade\""
+	print(sys.stderr, "numpy not installed, use \"pip install numpy --upgrade\"")
 	sys.exit(1)
 import os
 try:
-	import pyfits
+	from astropy.io import fits as pyfits
 except ImportError:
 	import sys
-	print >> sys.stderr, "pyfits not installed, use \"pip install pyfits --upgrade\""
+	print(sys.stderr, "pyfits not installed, use \"pip install pyfits --upgrade\"")
 	sys.exit(1)
 import re
 import sys
@@ -127,20 +127,20 @@ the extracted regular expression groups"""
 
 		prog = re.compile(r"^(?P<pos>[-+]|)?(?P<num>\d+)(?P<span>[dhms])$")
 		m = re.match(prog, span)
-		print span,m
+		print(span,m)
 		
 		# Allowed datetime data-types
 		if m.group('span') == 'd':
-			td = datetime.timedelta( days = long( m.group('num') ) )
+			td = datetime.timedelta( days = int( m.group('num') ) )
 		elif m.group('span') == 'h':
-			td = datetime.timedelta( hours = long( m.group('num') ) )
+			td = datetime.timedelta( hours = int( m.group('num') ) )
 		elif m.group('span') == 'm':
-			td = datetime.timedelta( minutes = long( m.group('num') ) )
+			td = datetime.timedelta( minutes = int( m.group('num') ) )
 		elif m.group('span') == 's':
-			td = datetime.timedelta( seconds = long( m.group('num') ) )	
+			td = datetime.timedelta( seconds = int( m.group('num') ) )	
 		else:
 			if self.verbose == True or self.debug == True:
-				print >> sys.stderr, "Unable to extract a valid timedelta from span - %s. Setting span to 0 seconds." % span
+				print(sys.stderr, "Unable to extract a valid timedelta from span - %s. Setting span to 0 seconds." % span)
 			return datetime.timedelta( seconds = 0 ), m
 			
 		return td, m
@@ -157,7 +157,7 @@ the extracted regular expression groups"""
 		try:
 			dt = datetime.datetime.strptime(date +" "+ time, "%Y-%m-%d %H:%M:%S")
 		except ValueError as e:
-			print >> sys.stderr, "Unable to extract date-time -", e
+			print(sys.stderr, "Unable to extract date-time -", e)
 			return None, None, None
 		
 		td, expr = self._get_spca(span)
@@ -195,7 +195,7 @@ the extracted regular expression groups"""
 			if os.path.isdir(self.archive +'/'+ start.strftime('%Y/%m/%d')) == True:
 				self._paths.append(self.archive +'/'+ start.strftime('%Y/%m/%d'))
 				if self.verbose == True or self.debug == True:
-					print "Adding date: %s" % (self.archive +'/'+ start.strftime('%Y/%m/%d'))
+					print("Adding date: %s" % (self.archive +'/'+ start.strftime('%Y/%m/%d')))
 			start += i 
 		return self._paths
 	
@@ -272,11 +272,11 @@ the extracted regular expression groups"""
 				fn = f.split('/')[-1]
 				ft = "%s%s%s%s%s%s" % (fn[3:7], fn[7:9], fn[9:11], fn[12:14], fn[14:16], fn[16:18])
 				if self.verbose == True or self.debug == True:
-						print "%s -> %s" % (f, ft)
+						print("%s -> %s" % (f, ft))
 				# successfully parsed filename for date and time 
 				times[i] = ft
 			except ValueError:
-				print >> sys.stderr, "%s - Unable to extract date and time from filename" % f 
+				print(sys.stderr, "%s - Unable to extract date and time from filename" % f )
 				continue
 		
 		return times
@@ -297,11 +297,11 @@ the extracted regular expression groups"""
 		# make sure only FITS files can be analyzed for data quality integrity
 		filetype = self.filetype if filetype is None else filetype
 		if not isinstance(filetype, str):
-			print >> sys.stderr, "Filetype association was not set during initalization or it has been reset."
+			print(sys.stderr, "Filetype association was not set during initalization or it has been reset.")
 			return [], []
 		
 		if re.search('^FITS$', filetype, flags=re.IGNORECASE) is None:
-			print >> sys.stderr, "FITS filetype is expected. Unable to perform quality check on the provided filetype."
+			print(sys.stderr, "FITS filetype is expected. Unable to perform quality check on the provided filetype.")
 			return [], []
 		
 		files = self._filelist if files is None else files
@@ -332,23 +332,23 @@ the extracted regular expression groups"""
 		try:
 			hdulist = pyfits.open(fits_file)
 		except IOError as e:
-			print >> sys.stderr, "%s - Image Quality Result: Failed - Unable to open file." % fits_file
-			if self.debug == True: print >> sys.stderr, e
+			print(sys.stderr, "%s - Image Quality Result: Failed - Unable to open file." % fits_file)
+			if self.debug == True: print(sys.stderr, e)
 			return False # Reject Image
 		
 		# Verify the HDU, fix if required. Return false if verficiation or fix fails.
 		try:
 			hdulist.verify('silentfix')
 		except: 
-			print >> sys.stderr, '%s - Exception handling HDU verfication' % (fits_file)
+			print(sys.stderr, '%s - Exception handling HDU verfication' % (fits_file))
 			hdulist.close()
 			return False
 		
 		try:
 			prihdr = hdulist[0].header # Primary FITS header (Standard)
 		except KeyError as e:
-			print >> sys.stderr, "%s - Image Quality Result: Failed - FITS Primary Header Not Found." % fits_file
-			if self.debug == True: print >> sys.stderr, e
+			print(sys.stderr, "%s - Image Quality Result: Failed - FITS Primary Header Not Found." % fits_file)
+			if self.debug == True: print(sys.stderr, e)
 			hdulist.close()
 			return False # Reject Image
 
@@ -358,8 +358,8 @@ the extracted regular expression groups"""
 			else:
 				sechdr = hdulist[1].header # Secondary FITS header (AIA Specific)
 		except KeyError as e:
-			print >> sys.stderr, "%s - Image Quality Result: Failed - FITS Secondary Header Not Found." % fits_file
-			if self.debug == True: print >> sys.stderr, e
+			print(sys.stderr, "%s - Image Quality Result: Failed - FITS Secondary Header Not Found." % fits_file)
+			if self.debug == True: print(sys.stderr, e)
 			hdulist.close()
 			return False # Reject Image
 		
@@ -374,33 +374,33 @@ the extracted regular expression groups"""
 				(y, x) = hdulist[1].data.shape
 				sz = hdulist[1].data.size
 		except:
-			print >> sys.stderr, '%s - Unable to fetch data dimensions' % (fits_file)
+			print(sys.stderr, '%s - Unable to fetch data dimensions' % (fits_file))
 			hdulist.close()
 			return False
 		
 		if synoptic == True:
 			if x != 1024 or y != 1024:
-				print >> sys.stderr, "%s - Image Quality Result: Failed - Array Dimensions do not equal 1024 x 1024 - (%s, %s)." % (fits_file, x, y)
-				if self.debug == True: print >> sys.stderr, e
+				print(sys.stderr, "%s - Image Quality Result: Failed - Array Dimensions do not equal 1024 x 1024 - (%s, %s)." % (fits_file, x, y))
+				if self.debug == True: print(sys.stderr, e)
 				hdulist.close()
 				return False # Reject Image	
 		else:
 			if x != 4096 or y != 4096:
-				print >> sys.stderr, "%s - Image Quality Result: Failed - Array Dimensions do not equal 4096 x 4096 - (%s, %s)." % (fits_file, x, y)
-				if self.debug == True: print >> sys.stderr, e
+				print(sys.stderr, "%s - Image Quality Result: Failed - Array Dimensions do not equal 4096 x 4096 - (%s, %s)." % (fits_file, x, y))
+				if self.debug == True: print(sys.stderr, e)
 				hdulist.close()
 				return False # Reject Image	
 
 		if synoptic == True:
 			if sz != 1048576:
-				print >> sys.stderr, "%s - Image Quality Result: Failed - Array elements does not equal 1048576 - (%s)." % (fits_file, sz)
-				if self.debug == True: print >> sys.stderr, e
+				print(sys.stderr, "%s - Image Quality Result: Failed - Array elements does not equal 1048576 - (%s)." % (fits_file, sz))
+				if self.debug == True: print(sys.stderr, e)
 				hdulist.close()
 				return False # Reject Image
 		else:
 			if sz != 16777216:
-				print >> sys.stderr, "%s - Image Quality Result: Failed - Array elements does not equal 16777216 - (%s)." % (fits_file, sz)
-				if self.debug == True: print >> sys.stderr, e
+				print(sys.stderr, "%s - Image Quality Result: Failed - Array elements does not equal 16777216 - (%s)." % (fits_file, sz))
+				if self.debug == True: print(sys.stderr, e)
 				hdulist.close()
 				return False # Reject Image
 		
@@ -410,8 +410,8 @@ the extracted regular expression groups"""
 		try:
 			FITS_KEYWORD__QUALITY = sechdr['QUALITY']
 		except KeyError as e:
-			print >> sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file
-			if self.debug == True: print >> sys.stderr, e
+			print(sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file)
+			if self.debug == True: print(sys.stderr, e)
 			hdulist.close()
 			return False
 
@@ -420,12 +420,12 @@ the extracted regular expression groups"""
 			FITS_KEYWORD__EXP_TIME = sechdr['EXPTIME']
 
 			if FITS_KEYWORD__EXP_TIME <= 1.85: #seconds
-				print >> sys.stderr,"%s - Image Quality Result: Failed - EXP_TIME less than 1.85s" % fits_file
+				print(sys.stderr,"%s - Image Quality Result: Failed - EXP_TIME less than 1.85s" % fits_file)
 				hdulist.close()
 				return False
 		except KeyError as e:
-				print >> sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file
-				if self.debug == True: print >> sys.stderr, e
+				print(sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file)
+				if self.debug == True: print(sys.stderr, e)
 				hdulist.close()
 				return False
             
@@ -448,25 +448,25 @@ the extracted regular expression groups"""
 				ForbiddenBits = [0,1,2,3,4,12,13,14,15,16,17,18,20,21,31] # If any of these bits are set - reject the image
 		
 				if BitSet[ForbiddenBits].sum() > 0:
-					print >> sys.stderr, "%s - Image Quality Result: Failed - Failed Bitwise Test." % fits_file
+					print(sys.stderr, "%s - Image Quality Result: Failed - Failed Bitwise Test." % fits_file)
 					hdulist.close()
 					return False # Reject Image
 			except TypeError as e:
-				print >> sys.stderr, "%s - Image Quality Result: Failed - Unable to Process BitSet (QUALITY %s = %s)." % \
-					(fits_file, type(FITS_KEYWORD__QUALITY), FITS_KEYWORD__QUALITY)
+				print(sys.stderr, "%s - Image Quality Result: Failed - Unable to Process BitSet (QUALITY %s = %s)." % \
+					(fits_file, type(FITS_KEYWORD__QUALITY), FITS_KEYWORD__QUALITY))
 				hdulist.close()
-				if self.debug == True: print >> sys.stderr, e
+				if self.debug == True: print(sys.stderr, e)
 				return False
 
 		try:
 			FITS_KEYWORD__PERCENTD = sechdr['percentd']
 			if FITS_KEYWORD__PERCENTD < 99.9999:
-				print >> sys.stderr, "%s - Image Quality Result: Failed - PERCENTD < 99.9999%%." % fits_file
+				print(sys.stderr, "%s - Image Quality Result: Failed - PERCENTD < 99.9999%%." % fits_file)
 				hdulist.close()
 				return False # Reject Image
 		except KeyError as e:
-			print >> sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file
-			if self.debug == True: print >> sys.stderr, e
+			print(sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file)
+			if self.debug == True: print(sys.stderr, e)
 			hdulist.close()
 			return False
 
@@ -475,12 +475,12 @@ the extracted regular expression groups"""
 			FITS_KEYWORD__DATAVALS = sechdr['datavals']
 		
 			if FITS_KEYWORD__DATAVALS < 16777200:
-				print >> sys.stderr, "%s - Image Quality Result: Failed - DATAVAL < 16777200." % fits_file
+				print(sys.stderr, "%s - Image Quality Result: Failed - DATAVAL < 16777200." % fits_file)
 				hdulist.close()
 				return False # Reject Image
 		except KeyError as e:
-			print >> sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file
-			if self.debug == True: print >> sys.stderr, e
+			print(sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file)
+			if self.debug == True: print(sys.stderr, e)
 			hdulist.close()
 			return False
 		
@@ -490,13 +490,13 @@ the extracted regular expression groups"""
 			FITS_KEYWORD__AIFTSID = sechdr['aiftsid']
 		
 			if FITS_KEYWORD__AIFTSID >= 49152:
-				print >> sys.stderr, "%s - Image Quality Result: Failed - Calibration Image Detected." % fits_file
+				print(sys.stderr, "%s - Image Quality Result: Failed - Calibration Image Detected." % fits_file)
 				hdulist.close()
 				return False # Reject Image
 		
 		except KeyError as e:
-			print >> sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file
-			if self.debug == True: print >> sys.stderr, e
+			print(sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file)
+			if self.debug == True: print(sys.stderr, e)
 			hdulist.close()
 			return False
 		
@@ -505,12 +505,12 @@ the extracted regular expression groups"""
 			FITS_KEYWORD__WAVE_STR = sechdr['WAVE_STR']
 		
 			if re.search('OPEN', FITS_KEYWORD__WAVE_STR, flags=re.IGNORECASE) is not None:
-				print >> sys.stderr, "%s - Image Quality Result: Failed - Open EUV Filter Mode Detected." % fits_file
+				print(sys.stderr, "%s - Image Quality Result: Failed - Open EUV Filter Mode Detected." % fits_file)
 				hdulist.close()
 				return False # Reject Image
 		except KeyError as e:
-			print >> sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file
-			if self.debug == True: print >> sys.stderr, e
+			print(sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file)
+			if self.debug == True: print(sys.stderr, e)
 			hdulist.close()
 			return False
 
@@ -526,24 +526,24 @@ the extracted regular expression groups"""
 					FITS_KEYWORD__AIAGP6 = sechdr['AIAGP6']
 				
 					if FITS_KEYWORD__AIAGP6 != 0:
-						print >> sys.stderr, "%s - Image Quality Result: Failed - AIAGP6 != 0" % fits_file
+						print(sys.stderr, "%s - Image Quality Result: Failed - AIAGP6 != 0" % fits_file)
 						hdulist.close()
 						return False # Reject Image
 				except KeyError as e:
-					print >> sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file
-					if self.debug == True: print >> sys.stderr, e
+					print(sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file)
+					if self.debug == True: print(sys.stderr, e)
 					hdulist.close()
 					return False
 		
 		except KeyError as e:
-			print >> sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file
-			if self.debug == True: print >> sys.stderr, e
+			print(sys.stderr, "%s - Image Quality Result: Failed - FITS Keyword Not Found." % fits_file)
+			if self.debug == True: print(sys.stderr, e)
 			hdulist.close()
 			return False
 			
 		### POSITIVE END RESULT ###
 		if self.verbose == True or self.debug == True:
-			print "%s - Image Quality Result: Passed" % fits_file
+			print("%s - Image Quality Result: Passed" % fits_file)
 		
 		hdulist.close() # remember to close the hdu
 	
@@ -559,7 +559,7 @@ the extracted regular expression groups"""
 """
 		
 		if not isinstance(files, list):
-			print >> sys.stderr, "list of files required"
+			print(sys.stderr, "list of files required")
 			return None
 			
 		# fetch a list of times based on the provided file list
@@ -598,7 +598,7 @@ the extracted regular expression groups"""
 				# was the size of the bin less than expected? add the bin-size to the skipped bins counter
 				if self.verbose == True or self.debug == True:
 					for f in files[(hloc + sloc) : (hloc + sloc) + hindx]:
-						print >> sys.stderr, "%s - Skipped file. Calculated binning: %d. Required binning: %d. " % (f, hindx, nfiles)
+						print(sys.stderr, "%s - Skipped file. Calculated binning: %d. Required binning: %d. " % (f, hindx, nfiles))
 				
 				sloc += hindx # excluded histogram bin width
 				continue # next!
@@ -611,7 +611,7 @@ the extracted regular expression groups"""
 			
 		if sloc > 0:
 			if self.verbose == True or self.debug == true:
-				print >> sys.stderr, "Skipped %d files." % sloc
+				print(sys.stderr, "Skipped %d files." % sloc)
 		
 		indxs = [ indx for indx, select in enumerate(selection) if select != '' ]
 		selection = [ selection[indx] for indx in indxs ] # filter list to exclude empty string items

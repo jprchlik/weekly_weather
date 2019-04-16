@@ -67,7 +67,8 @@ class download:
         
         #Download the files locally in parallel if nproc greater than 1
         if self.nproc < 2:
-            for i in par_list: wrap_download_file(i)
+            for i in par_list:
+                wrap_download_file(i)
         else:
             pool = Pool(processes=self.nproc)
             outp = pool.map(wrap_download_file,par_list)
@@ -84,42 +85,78 @@ class download:
 
 #wrapper for download file for par. processing
 def wrap_download_file(args):
+    """
+    Wrapper function so you may run download_file in parallel. Map only allows one argument,
+    so you can get around this by creating a wrapper function the passes variables in order 
+    to the primary function.
+
+    Parameters
+    ----------
+    args: tuple
+        Tuple of arguments to pass to download_file in order
+   
+    Returns
+    -------
+    None
+    """
     return download_file(*args)
 
 #download files from archive for each wavelength
 def download_file(time,wavl,w_fmt,f_dir,b_dir,syn_arch):
+   """
+   Function to download files from jsoc syntopic archive. By default it is ran in parellel.
+
+   Parameters
+   ----------
+   time: datetime object
+       The to look for a file
+   wavl: int 
+       Wavelength in Angstroms you are interested in downloading     
+   w_fmt:
+       The wavelength format of the wavelength list (defatult = '{0:04d}.fits').
+   f_dir
+       Create local directory path format for SDO/AIA files (default = '{0:%Y/%m/%d/H%H00/AIA%Y%m%d_%H%M_}')
+   b_dir
+       The base directory for locally storing the AIA archive.
+   syn_arch
+       Location of online syntopic archive (default = 'http://jsoc.stanford.edu/data/aia/synoptic/nrt/').
+   """
 
    #format wavelength
    w_fil = w_fmt.format(wavl)
    #format input time
    s_dir = f_dir.format(time)
-
+   
    #local output directory
    o_dir =b_dir+'/'.join(s_dir.split('/')[:-1])
-
+   
    #check if direcory exists
    if not os.path.exists(o_dir):
        os.makedirs(o_dir)
-  
+   
    #create output file
    o_fil = b_dir+s_dir.split('/')[-1]+w_fil
    o_fil = b_dir+s_dir+w_fil
    #file to download from archive
    d_fil = syn_arch+s_dir+w_fil
-
-   #remove file if program downloaded empty file 2018/04/23 J. Prchlik
-   if os.path.isfile(o_fil):
-       if os.path.getsize(o_fil) < 400 : os.remove(o_fil)
-
-   #check if output file exists
-   if not os.path.isfile(o_fil):
-
-       #try to download file if fails continue on
-       try:
-           urllib.urlretrieve(d_fil,o_fil) 
-       except:
+   try:
+    
+       #remove file if program downloaded empty file 2018/04/23 J. Prchlik
+       if os.path.isfile(o_fil):
+           if os.path.getsize(o_fil) < 400 : os.remove(o_fil)
+    
+       #check if output file exists
+       if not os.path.isfile(o_fil):
+    
+           #try to download file if fails continue on
+           try:
+               urllib.urlretrieve(d_fil,o_fil) 
+           except:
+               print("Cound not Download {0} from archive".format(d_fil))
+           
+           #file if program downloaded empty file 2018/04/23 J. Prchlik
+           if os.path.getsize(o_fil) < 400 : os.remove(o_fil)
+   except:
            print("Cound not Download {0} from archive".format(d_fil))
-       
-       #file if program downloaded empty file 2018/04/23 J. Prchlik
-       if os.path.getsize(o_fil) < 400 : os.remove(o_fil)
-
+        
+   

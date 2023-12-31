@@ -153,24 +153,30 @@ def look_xrays(start,end,sdir):
     None
     """
 #initialize variables
-    ftp = ftplib.FTP('ftp.swpc.noaa.gov','anonymous','jakub.prchlik@cfa.harvard.edu')
-#change ftp directory to events directory for a given year
-    ftp.cwd('/pub/lists/xray/')
-     
-    #Get and format DSCOVR files  
-    getfiles_dscvor(sdir)
+##    ftp = ftplib.FTP('ftp.swpc.noaa.gov','anonymous','jakub.prchlik@cfa.harvard.edu')
+###change ftp directory to events directory for a given year
+##    ftp.cwd('lists/xray/')
+    #Move to JSON SPWC files 2023-12-31 J. Prchlik
+    base_url_json = 'https://services.swpc.noaa.gov/json/'
+    xray_url_json = f'{base_url_json}/goes/primary/xrays-7-day.json'
+    response = requests.get( xray_url_json)
+    xrays = response.json()
 
-    days =  np.arange(start,end,timedelta(days=1)).astype(datetime)
-#loop through days     
-    for day in days:
-#request file from ftp server to add to local directory
-        getfiles(day,ftp,sdir)
-#change ftp directory to events directory for a given year
-    ftp.cwd('../ace/')
-    for day in days:
-        getfiles_ace(day,ftp,sdir,swepam=True)
-        getfiles_ace(day,ftp,sdir,mag=True)
+
+    #base file for the solar wind products
+    wind_url_json = f'https://services.swpc.noaa.gov/products/solar-wind/'
+
+    #using 7 day backlog for mag and proton parameters
+    plas_url_json = f'{wind_url_json}/plasma-7-day.json'
+    magf_url_json = f'{wind_url_json}/mag-7-day.json'
+
+
+    #plasma parameters
+    response = requests.get(plas_url_json)
+    plas = response.json()
     
-#nicely leave the ftp server
-    ftp.quit()
+    #Magnetic Field parameters
+    response = requests.get(magf_url_json)
+    magf = response.json()
+     
 

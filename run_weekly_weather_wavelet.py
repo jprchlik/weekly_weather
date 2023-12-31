@@ -4,7 +4,7 @@ import matplotlib
 matplotlib.use('agg')
 import sunpy.map
 from matplotlib.transforms import Bbox
-from sunpy.cm import cm
+import sunpy.visualization.colormaps as cm
 import matplotlib.dates as mdates
 import subprocess
 from PIL import Image
@@ -19,7 +19,7 @@ from multiprocessing import Pool
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import grab_goes_xray_flux as ggxf
-from mpl_toolkits.axes_grid.inset_locator import inset_axes
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from astropy.io import ascii
 from astropy.table import vstack,Table,join
 import flare_query as fq
